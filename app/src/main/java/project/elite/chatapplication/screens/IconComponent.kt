@@ -1,5 +1,4 @@
 package project.elite.chatapplication.screens
-
 import androidx.annotation.DrawableRes
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.height
@@ -13,6 +12,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import coil.compose.AsyncImage
 
 
 @Composable
@@ -27,18 +27,20 @@ fun IconComponentImageVector(
 
 @Composable
 fun IconComponentDrawable(
-    @DrawableRes icon: Int,
+    icon: String?,
     modifier: Modifier = Modifier,
     tint: Color = Color.Unspecified,
     size: Dp
 ) {
-    Icon(
-        painter = painterResource(id = icon),
+    AsyncImage(
+        model = icon,
         contentDescription = "",
         modifier = modifier.size(size),
-        tint = tint
-    )
+
+        )
 }
+
+
 
 @Composable
 fun SpacerWidth(

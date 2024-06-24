@@ -1,6 +1,5 @@
 package project.elite.chatapplication.signin
 
-import android.service.autofill.UserData
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -23,11 +22,14 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
-
-import project.elite.chatapplication.R
+import coil.compose.AsyncImage
+import project.elite.chatapplication.navigation.Screens
 
 @Composable
-fun ProfileScreen(navController: NavController) {
+fun ProfileScreen(
+    navController: NavController, userData: UserData?,
+    onSignOut: () -> Unit
+) {
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -35,7 +37,7 @@ fun ProfileScreen(navController: NavController) {
             .padding(16.dp)
     ) {
         IconButton(
-            onClick = { },
+            onClick = { navController.navigate(Screens.HomeScreen.route)},
             modifier = Modifier.align(Alignment.TopStart)
         ) {
             Icon(
@@ -52,9 +54,9 @@ fun ProfileScreen(navController: NavController) {
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-
-               Image(
-                    painter = painterResource(id = R.drawable.background),
+            if (userData?.profilePictureUrl != null) {
+                AsyncImage(
+                    model = userData.profilePictureUrl,
                     contentDescription = "Profile picture",
                     modifier = Modifier
                         .size(160.dp)
@@ -64,26 +66,27 @@ fun ProfileScreen(navController: NavController) {
 
                 Spacer(modifier = Modifier.height(24.dp))
 
-
+                userData.username?.let {
                     Text(
-                        text = "Nandini Singh",
+                        text = it,
                         color = Color.White,
                         fontSize = 24.sp,
                         fontWeight = FontWeight.Bold
                     )
-
+                }
 
                 Spacer(modifier = Modifier.height(32.dp))
 
 
                 Button(
-                    onClick = { },
+                    onClick = { onSignOut()},
                     modifier = Modifier.padding(8.dp)
                 ) {
                     Text(
                         text = "Sign Out",
                         fontSize = 18.sp
                     )
+                }
             }
         }
     }

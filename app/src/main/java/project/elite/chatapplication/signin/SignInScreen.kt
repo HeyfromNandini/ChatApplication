@@ -8,10 +8,10 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material.ButtonDefaults
+import androidx.compose.material.TextFieldDefaults
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
-import androidx.compose.material.MaterialTheme
-
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -29,16 +29,34 @@ import com.airbnb.lottie.compose.LottieAnimation
 import com.airbnb.lottie.compose.LottieCompositionSpec
 import com.airbnb.lottie.compose.animateLottieCompositionAsState
 import com.airbnb.lottie.compose.rememberLottieComposition
+import com.google.firebase.auth.FirebaseAuth
+import kotlinx.coroutines.launch
 import project.elite.chatapplication.R
-import project.elite.chatapplication.navigation.Screens
+import project.elite.chatapplication.signin.phonesignin.onLoginClicked
+import project.elite.chatapplication.signin.phonesignin.verifyPhoneNumberWithCode
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SignInScreen(navController: NavController) {
+fun SignInScreen(
+    navController: NavController,
+    state: SignInState,
+    onSignInClick: () -> Unit
+) {
     val context = LocalContext.current
 
 
+    LaunchedEffect(key1 = state.signInError) {
+        state.signInError?.let { error ->
+            Toast.makeText(
+                context,
+                error,
+                Toast.LENGTH_LONG
+            ).show()
+        }
+    }
 
+
+    val auth = FirebaseAuth.getInstance()
     var storedVerificationId: String = ""
 
 
@@ -59,8 +77,6 @@ fun SignInScreen(navController: NavController) {
             .padding(20.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-
-
         // LottieAnimation for profile image
         val compnotify by rememberLottieComposition(
             spec = LottieCompositionSpec.Asset("profile.json")
@@ -88,15 +104,15 @@ fun SignInScreen(navController: NavController) {
 
         // Google sign-in button
         Card(
-            modifier = Modifier.clickable{ navController.navigate(Screens.HomeScreen.route)}
+            modifier = Modifier
                 .size(80.dp)
-                .clickable {  },
+                .clickable { onSignInClick() },
             shape = CircleShape
         ) {
             Image(
-                painter = painterResource(id = R.drawable.background),
+                painter = painterResource(id = R.drawable.google),
                 contentScale = ContentScale.Crop,
-                modifier = Modifier.fillMaxSize().clickable{navController.navigate(Screens.HomeScreen.route)},
+                modifier = Modifier.fillMaxSize(),
                 contentDescription = ""
             )
         }
@@ -124,9 +140,12 @@ fun SignInScreen(navController: NavController) {
         Spacer(modifier = Modifier.height(30.dp))
 
         if(isOtpVisible) {
-            TextField(
+            androidx.compose.material.TextField(
+                colors = TextFieldDefaults.textFieldColors(
+                    backgroundColor = Color.White
+                ),
                 value = otp,
-                placeholder = { Text("Enter otp") },
+                placeholder = { androidx.compose.material.Text("Enter otp") },
                 onValueChange = { otp = it },
                 modifier = Modifier
                     .fillMaxWidth(1f)
@@ -140,16 +159,21 @@ fun SignInScreen(navController: NavController) {
             Row( modifier = Modifier
                 .padding(top = 8.dp)
                 .padding(horizontal = 50.dp)) {
-               Button(
+                androidx.compose.material.Button(
                     onClick = {
-
+                        onLoginClicked(context, phoneNumber.text) {
+                            Log.d("phoneBook", "setting otp visible")
+                            isOtpVisible = true
+                        }
                     },
+                    colors = ButtonDefaults.textButtonColors(
+                        backgroundColor = androidx.compose.material.MaterialTheme.colors.primary
+                    ),
                     modifier = Modifier
                         .fillMaxWidth(1f)
                         .padding(top = 8.dp)
                 ) {
-
-                   Text(text = "Send otp", color = Color.White)
+                    androidx.compose.material.Text(text = "Send otp", color = Color.White)
                 }}
         }
 
@@ -159,14 +183,17 @@ fun SignInScreen(navController: NavController) {
             Row( modifier = Modifier
                 .padding(top = 8.dp)
                 .padding(horizontal = 50.dp)) {
-               Button(
-                    onClick = {  },
+                androidx.compose.material.Button(
+                    onClick = { verifyPhoneNumberWithCode(context, storedVerificationId, otp.text) },
+                    colors = ButtonDefaults.textButtonColors(
+                        backgroundColor = androidx.compose.material.MaterialTheme.colors.primary
+                    ),
                     modifier = Modifier
                         .fillMaxWidth(1f)
                         .padding(top = 8.dp)
 
                 ) {
-                   Text(text = "Verify", color = Color.White)
+                    androidx.compose.material.Text(text = "Verify", color = Color.White)
                 }
             }
         }

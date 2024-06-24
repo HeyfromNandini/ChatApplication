@@ -1,8 +1,10 @@
 package project.elite.chatapplication.screens
 
 
+
 import androidx.annotation.DrawableRes
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -11,7 +13,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.ArrowForward
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -24,9 +25,8 @@ import androidx.compose.ui.Alignment.Companion.BottomCenter
 import androidx.compose.ui.Alignment.Companion.Center
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.Color.Companion.Gray
-import androidx.compose.ui.graphics.Color.Companion.Yellow
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
@@ -34,79 +34,137 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import com.jet.firestore.JetFirestore
+import com.jet.firestore.getListOfObjects
 import project.elite.chatapplication.R
-import project.elite.chatapplication.data.Chat
-import project.elite.chatapplication.data.chatList
 import project.elite.chatapplication.ui.theme.Gray400
 import project.elite.chatapplication.ui.theme.LightRed
+import project.elite.chatapplication.data.AllChats
+import project.elite.chatapplication.data.Person
+import project.elite.chatapplication.navigation.Collections
+import project.elite.chatapplication.signin.UserData
+import project.elite.chatapplication.signin.firestore.updateChatsToFirebase
+import project.elite.chatapplication.ui.theme.Gray
 import project.elite.chatapplication.ui.theme.LightYellow
+import project.elite.chatapplication.ui.theme.Yellow
+
 
 @Composable
-fun ChatScreen(navController: NavController) {
+fun ChatScreen(
+    navController: NavController,
+    userData: UserData?
+) {
 
+    val context = LocalContext.current
     var message by remember { mutableStateOf("") }
+    val data =
+        navController.previousBackStackEntry?.savedStateHandle?.get<Person>("data") ?: Person()
+
+    var allChats by remember { mutableStateOf<List<AllChats>?>(null) }
+//    var userChats by remember { mutableStateOf<AllChats>(null) }
 
 
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(Color.Black)
-    ) {
-        Column(
-            modifier = Modifier.fillMaxSize()
+    JetFirestore(path = {
+        collection(Collections.AllChats.name)
+    }, onRealtimeCollectionFetch = { values, _ ->
+        allChats = values?.getListOfObjects()
+
+//        userData?.let { userData ->
+//            allChats?.let { allChats ->
+//                for (chats in allChats) {
+//                    if (chats.sender == userData.username) {
+//                        allChats?.append()
+//                    }
+//
+//                }
+//            }
+//        }
+
+    }) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(Color.Black)
         ) {
-            UserNameRow(
-                modifier = Modifier.padding(top = 60.dp, start = 20.dp, end = 20.dp, bottom = 20.dp)
-            )
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .background(
-                        Color.White, RoundedCornerShape(
-                            topStart = 30.dp, topEnd = 30.dp
-                        )
-                    )
-                    .padding(top = 25.dp)
-
+            Column(
+                modifier = Modifier.fillMaxSize()
             ) {
-                LazyColumn(
+                UserNameRow(
+                    person = data,
                     modifier = Modifier.padding(
-                        start = 15.dp,
-                        top = 25.dp,
-                        end = 15.dp,
-                        bottom = 75.dp
+                        top = 60.dp,
+                        start = 20.dp,
+                        end = 20.dp,
+                        bottom = 20.dp
                     )
+                )
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(
+                            Color.White, RoundedCornerShape(
+                                topStart = 30.dp, topEnd = 30.dp
+                            )
+                        )
+                        .padding(top = 25.dp)
+
                 ) {
-                    items(chatList, key = { it.id }) {
-                        ChatRow(chat = it)
+                    LazyColumn(
+                        modifier = Modifier.padding(
+                            start = 15.dp,
+                            top = 25.dp,
+                            end = 15.dp,
+                            bottom = 75.dp
+                        )
+                    ) {
+                        items(allChats ?: emptyList(), key = { it.time }) { allChats ->
+                            userData?.let {
+                                if ((allChats.sender == userData.username && allChats.receiver == data.name) ||
+                                    (allChats.receiver == userData.username && allChats.sender == data.name)
+                                ) {
+                                    ChatRow(chat = allChats, userData = it)
+                                }
+                            }
+                        }
                     }
                 }
             }
-        }
 
-        CustomTextField(
-            text = message, onValueChange = { message = it },
-            modifier = Modifier
-                .padding(horizontal = 20.dp, vertical = 20.dp)
-                .align(BottomCenter)
-        )
+            CustomTextField(
+                text = message, onValueChange = { message = it },
+                onClick = {
+                    updateChatsToFirebase(
+                        context = context,
+                        sender = userData?.username ?: "",
+                        receiver = data.name ?: "",
+                        time = System.currentTimeMillis(),
+                        message = message
+
+                    )
+                },
+                modifier = Modifier
+                    .padding(horizontal = 20.dp, vertical = 20.dp)
+                    .align(BottomCenter)
+            )
+        }
     }
 
 }
 
 @Composable
 fun ChatRow(
-    chat: Chat
+    chat: AllChats,
+    userData: UserData
 ) {
 
     Column(
         modifier = Modifier.fillMaxWidth(),
-        horizontalAlignment = if (chat.direction) Alignment.Start else Alignment.End
+        horizontalAlignment = if (chat.sender == userData.username) Alignment.End else Alignment.Start
     ) {
         Box(
             modifier = Modifier
                 .background(
-                    if (chat.direction) LightRed else LightYellow,
+                    if (chat.sender == userData.username) LightRed else LightYellow,
                     RoundedCornerShape(100.dp)
                 ),
             contentAlignment = Center
@@ -121,7 +179,7 @@ fun ChatRow(
             )
         }
         Text(
-            text = chat.time,
+            text = chat.time.toString(),
             style = TextStyle(
                 color = Gray,
                 fontSize = 12.sp
@@ -137,13 +195,14 @@ fun ChatRow(
 fun CustomTextField(
     text: String,
     modifier: Modifier = Modifier,
-    onValueChange: (String) -> Unit
+    onValueChange: (String) -> Unit,
+    onClick: () -> Unit
 ) {
     TextField(
         value = text, onValueChange = { onValueChange(it) },
         placeholder = {
             Text(
-                text = "type_message",
+                text = "type message",
                 style = TextStyle(
                     fontSize = 14.sp,
                     color = Color.Black
@@ -154,10 +213,13 @@ fun CustomTextField(
         colors = TextFieldDefaults.textFieldColors(
             containerColor = Gray400,
             unfocusedIndicatorColor = Color.Transparent,
-            focusedIndicatorColor = Color.Transparent
+            focusedIndicatorColor = Color.Transparent,
+            textColor = Color.Black
         ),
         leadingIcon = { CommonIconButton(imageVector = Icons.Default.Add) },
-        trailingIcon = { CommonIconButton(imageVector = Icons.Default.ArrowForward) },
+        trailingIcon = { CommonIconButtonDrawable(R.drawable.background, onClick = {
+            onClick()
+        }) },
         modifier = modifier.fillMaxWidth(),
         shape = CircleShape
     )
@@ -181,7 +243,8 @@ fun CommonIconButton(
 
 @Composable
 fun CommonIconButtonDrawable(
-    @DrawableRes icon: Int
+    @DrawableRes icon: Int,
+    onClick: () -> Unit
 ) {
     Box(
         modifier = Modifier
@@ -191,7 +254,12 @@ fun CommonIconButtonDrawable(
         Icon(
             painter = painterResource(id = icon), contentDescription = "",
             tint = Color.Black,
-            modifier = Modifier.size(15.dp)
+            modifier = Modifier
+                .size(15.dp)
+                .clickable {
+                    onClick()
+                }
+
         )
     }
 
@@ -200,6 +268,7 @@ fun CommonIconButtonDrawable(
 @Composable
 fun UserNameRow(
     modifier: Modifier = Modifier,
+    person: Person
 ) {
 
     Row(
@@ -208,16 +277,18 @@ fun UserNameRow(
     ) {
         Row {
 
-            IconComponentDrawable(icon = R.drawable.background, size = 42.dp)
+            IconComponentDrawable(icon = person.icon, size = 42.dp)
             SpacerWidth()
             Column {
-                Text(
-                    text = "Nandini Singh", style = TextStyle(
-                        color = Color.White,
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 16.sp
+                person.name?.let {
+                    Text(
+                        text = it, style = TextStyle(
+                            color = Color.White,
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 16.sp
+                        )
                     )
-                )
+                }
                 Text(
                     text = "online", style = TextStyle(
                         color = Color.White,

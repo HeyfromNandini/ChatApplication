@@ -19,16 +19,25 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import com.google.android.gms.auth.api.identity.Identity
 import project.elite.chatapplication.bottombar.BottomBar
 import project.elite.chatapplication.navigation.MainNavController
 import project.elite.chatapplication.navigation.Screens
 import project.elite.chatapplication.screens.ChatScreen
 import project.elite.chatapplication.screens.HomeScreen
 import project.elite.chatapplication.screens.StartScreen
+import project.elite.chatapplication.signin.GoogleAuthUiClient
 import project.elite.chatapplication.signin.SignInScreen
 import project.elite.chatapplication.ui.theme.ChatApplicationTheme
 
 class MainActivity : ComponentActivity() {
+
+    private val googleAuthUiClient by lazy {
+        GoogleAuthUiClient(
+            context = applicationContext,
+            oneTapClient = Identity.getSignInClient(applicationContext)
+        )
+    }
 
 
     @OptIn(ExperimentalMaterial3Api::class)
@@ -63,6 +72,7 @@ class MainActivity : ComponentActivity() {
                     ) {
                         val scaffoldState = rememberScaffoldState()
                         MainNavController(
+                            it,
                             navController
                         )
                     }
