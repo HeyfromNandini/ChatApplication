@@ -1,6 +1,7 @@
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
+    id("com.google.gms.google-services")
 }
 
 android {
@@ -70,7 +71,7 @@ dependencies {
 
 
     //material3
-    implementation ("androidx.compose.material:material:1.6.8")
+    implementation("androidx.compose.material:material:1.6.8")
 
 
     // Material for icons
@@ -85,4 +86,29 @@ dependencies {
     implementation("com.google.accompanist:accompanist-navigation-animation:0.28.0")
 
 
+    //firebase
+    implementation("com.google.firebase:firebase-auth-ktx:23.0.0")
+    implementation("com.google.android.gms:play-services-auth:21.2.0")
+    implementation(platform("com.google.firebase:firebase-bom:33.1.0"))
+    implementation("com.google.firebase:firebase-auth")
+    implementation("com.google.firebase:firebase-firestore-ktx:25.0.0")
+
+    // For runtime
+    implementation("androidx.compose.runtime:runtime-livedata")
+
+    // Lifecycle dependencies
+    implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.8.2")
+
+    // Coil to load images remotely (profile img)
+    implementation("io.coil-kt:coil-compose:2.3.0")
+
+    // JetFireStore
+    implementation("com.github.raipankaj:JetFirestore:1.0.3")
+
+    // Lifecycle-aware Compose state
+    implementation("androidx.lifecycle:lifecycle-runtime-compose:2.8.2")
+
+    // DataStore
+    implementation("androidx.datastore:datastore-core:1.1.1")
+    implementation("androidx.datastore:datastore-preferences:1.1.1")
 }
