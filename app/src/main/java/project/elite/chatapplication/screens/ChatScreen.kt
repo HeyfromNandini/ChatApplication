@@ -14,6 +14,7 @@ import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material.icons.filled.Send
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
@@ -61,7 +62,6 @@ fun ChatScreen(
         navController.previousBackStackEntry?.savedStateHandle?.get<Person>("data") ?: Person()
 
     var allChats by remember { mutableStateOf<List<AllChats>?>(null) }
-//    var userChats by remember { mutableStateOf<AllChats>(null) }
 
 
     JetFirestore(path = {
@@ -69,16 +69,7 @@ fun ChatScreen(
     }, onRealtimeCollectionFetch = { values, _ ->
         allChats = values?.getListOfObjects()
 
-//        userData?.let { userData ->
-//            allChats?.let { allChats ->
-//                for (chats in allChats) {
-//                    if (chats.sender == userData.username) {
-//                        allChats?.append()
-//                    }
-//
-//                }
-//            }
-//        }
+
 
     }) {
         Box(
@@ -217,7 +208,7 @@ fun CustomTextField(
             textColor = Color.Black
         ),
         leadingIcon = { CommonIconButton(imageVector = Icons.Default.Add) },
-        trailingIcon = { CommonIconButtonDrawable(R.drawable.background, onClick = {
+        trailingIcon = { CommonIconButtonDrawable(icon = Icons.Default.Send, onClick = {
             onClick()
         }) },
         modifier = modifier.fillMaxWidth(),
@@ -228,13 +219,15 @@ fun CustomTextField(
 
 @Composable
 fun CommonIconButton(
-    imageVector: ImageVector
+    imageVector: ImageVector,
+
 ) {
 
     Box(
         modifier = Modifier
             .background(Yellow, CircleShape)
-            .size(33.dp), contentAlignment = Center
+            .size(33.dp)
+        , contentAlignment = Center
     ) {
         IconComponentImageVector(icon = imageVector, size = 15.dp, tint = Color.Black)
     }
@@ -243,7 +236,7 @@ fun CommonIconButton(
 
 @Composable
 fun CommonIconButtonDrawable(
-    @DrawableRes icon: Int,
+     icon: ImageVector,
     onClick: () -> Unit
 ) {
     Box(
@@ -252,7 +245,7 @@ fun CommonIconButtonDrawable(
             .size(33.dp), contentAlignment = Center
     ) {
         Icon(
-            painter = painterResource(id = icon), contentDescription = "",
+            imageVector = icon, contentDescription = "",
             tint = Color.Black,
             modifier = Modifier
                 .size(15.dp)
