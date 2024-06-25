@@ -6,7 +6,9 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -56,11 +58,14 @@ fun SplashScreen(navController: NavController) {
 
     ) {
         Image(
-            painter = painterResource(id = R.drawable.background),
+            painter = painterResource(id = R.drawable.icon),
             contentDescription = "Logo",
-            modifier = Modifier.scale(scale.value).padding(vertical = 30.dp)
+            modifier = Modifier
+                .scale(scale.value)
+                .padding(vertical = 10.dp)
         )
-        Text(text = "We Chat", fontSize = 35.sp, fontWeight = FontWeight.Bold)
-        Text(text = "Your own ChatApp", fontSize = 20.sp, fontWeight = FontWeight.Bold, color = Color.LightGray)
+        Text(text = "GutarGoo", fontSize = 45.sp, fontWeight = FontWeight.Bold)
+        Spacer(modifier = Modifier.height(5.dp))
+        Text(text = "Your own chat Adda", fontSize = 20.sp, fontWeight = FontWeight.Bold, color = Color.LightGray)
     }
 }
